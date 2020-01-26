@@ -1,0 +1,5 @@
+# Social Network Ads
+1. https://www.kaggle.com/akram24/social-network-ads
+
+# Top 50 Spotify
+2. https://www.kaggle.com/leonardopena/top50spotify2019
