@@ -2,19 +2,27 @@ library(dplyr)
 library(tidyverse)
 library(ggplot2)
 library(corrplot)
+library(cluster)
+library(factoextra)
 
-top50.data = read.csv('dataset/top50.csv')
+top50.data = read.csv('dataset/maindataset/top50.csv')
 
 colnames(top50.data)
 colnames(top50.data) <- tolower(make.names(colnames(top50.data)))
 colnames(top50.data)
 
 #top50.data <- top50.data[sample(nrow(top50.data),30),]
+if(FALSE){
+top50.data %>% 
+    group_by(artist.name) %>% 
+    summarise(counts = n()) %>% 
+    View()
+}
 
 top50.data <- top50.data %>% 
-    distinct(x, .keep_all = T) %>% 
+    select(-genre) %>% 
     remove_rownames() %>%
-    column_to_rownames(var = 'x')
+    column_to_rownames(var = 'artist.name')
 
 str(top50.data)
 
@@ -24,18 +32,19 @@ top50.data <- scale(top50.data)
 head(top50.data, n = 3)
 
 ## ------------------------------------------------------------------------
-library(cluster)
+
 
 distance <- get_dist(top50.data, method = 'euclidean')
 fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
 
 ## ----k-means-optimal-clusters-wss, fig.height=3--------------------------
-library(factoextra)
-
-fviz_nbclust(top50.data, kmeans, method = "wss") +
-    geom_vline(xintercept = 4, linetype = 2)
 
 fviz_nbclust(top50.data, kmeans, method = "wss")
+
+fviz_nbclust(top50.data, kmeans, method = "wss") +
+    geom_vline(xintercept = 8, linetype = 2)
+
+
 fviz_nbclust(top50.data, kmeans, method = "silhouette")
 
 #gap_stat <- clusGap(top50.data, FUN = kmeans, nstart = 25, K.max = 10, B = 50)
@@ -71,7 +80,6 @@ plt <- dd %>%
 
 print(plt)
 
-## ---- eval = FALSE-------------------------------------------------------
 ## # Cluster number for each of the observations
 ## km.res$cluster
 
