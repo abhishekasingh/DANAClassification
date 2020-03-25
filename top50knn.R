@@ -22,7 +22,7 @@ library(d3heatmap)
 # Import dataset #
 ##################
 
-top50.data = read.csv('dataset/maindataset/top50.csv')
+top50.data = read.csv('dataset/top50.csv')
 
 colnames(top50.data)
 colnames(top50.data) <- tolower(make.names(colnames(top50.data)))
@@ -173,7 +173,7 @@ fviz_dend(ward.res.hc,
 # Elbow method #
 ################
 fviz_nbclust(top50.data, kmeans, method = "wss") +
-    geom_vline(xintercept = 4, linetype = 2)+
+    geom_vline(xintercept = 3, linetype = 2)+
     labs(subtitle = "Elbow method")
 
 #####################
@@ -390,3 +390,57 @@ d3heatmap(top50.data, colors = "RdYlBu",
           k_row = 4,
           k_col = 2
           )
+
+#####################
+# k-means algorithm #
+#####################
+
+fviz_nbclust(top50.data, kmeans, method = "wss") +
+    geom_vline(xintercept = 3, linetype = 2)
+
+# Compute k-means with k = 4
+set.seed(123)
+km.res <- kmeans(top50.data, 3, nstart = 25)
+
+# Print the results
+print(km.res)
+
+aggregate(top50.data, by=list(cluster=km.res$cluster), mean)
+top50.data.agg <- cbind(top50.data, cluster = km.res$cluster)
+head(top50.data.agg)
+
+# Cluster size
+km.res$size
+
+## ----k-means-plot-ggplot2-factoextra, fig.width=7, fig.height=6----------
+fviz_cluster(km.res, data = top50.data,
+             palette = c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07"), 
+             ellipse.type = "euclid", # Concentration ellipse
+             star.plot = TRUE, # Add segments from centroids to items
+             repel = TRUE, # Avoid label overplotting (slow)
+             ggtheme = theme_minimal()
+)
+
+#################
+# PAM algorithm #
+#################
+
+## ----pam-optimal-clusters-wss------------------------------
+
+fviz_nbclust(top50.data, pam, method = "silhouette")+
+    theme_classic()
+
+pam.res <- pam(top50.data, 2)
+print(pam.res)
+
+pam.dd <- cbind(top50.data, cluster = pam.res$cluster)
+head(pam.dd, n = 3)
+
+pam.res$medoids
+
+fviz_cluster(pam.res, 
+             palette = c("#00AFBB", "#FC4E07"), # color palette
+             ellipse.type = "t", # Concentration ellipse
+             repel = TRUE, # Avoid label overplotting (slow)
+             ggtheme = theme_classic()
+)
